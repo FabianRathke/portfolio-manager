@@ -1,19 +1,21 @@
-import PyPDF2
 import re
-from db import DB
 from os import listdir
-import ipdb
 from datetime import datetime
 
+import PyPDF2
 
-def readPDF(folder, filename):
+from flaskr import db
+from flaskr.models import User, Transaction
+
+
+def read_pdf(folder, filename):
     def extract_float(string):
-        return float(string.replace('.', '').replace(',','.'))
+        return float(string.replace('.', '').replace(',', '.'))
 
-    pdfObj = open(folder + filename, 'rb')
-    pdfReader = PyPDF2.PdfFileReader(pdfObj)
-    pageObj = pdfReader.getPage(0)
-    text = pageObj.extractText()
+    pdf_obj = open(folder + filename, 'rb')
+    pdf_reader = PyPDF2.PdfFileReader(pdf_obj)
+    page_obj = pdf_reader.getPage(0)
+    text = page_obj.extractText()
 
     # type of buy_order
     if text.find("WertpapierabrechnungKauf") != -1:
@@ -26,7 +28,7 @@ def readPDF(folder, filename):
     dividend_tax = church_tax = soli_tax = 0
     provision = courtage = exchange_provision = 0
 
-    WKN = re.findall(r'\(WKN\)[\d\w]+ \(([\d\w]{6})\)', text)[0]
+    wkn = re.findall(r'\(WKN\)[\d\w]+ \(([\d\w]{6})\)', text)[0]
     if type_ == 'warrant_closure':
         amount = -int(extract_float(re.findall(r'([\d,.]+) Stück', text)[0]))
         due_date = re.findall(r'Fälligkeit(\d{2}.\d{2}.\d{4})', text)[0]
@@ -55,7 +57,7 @@ def readPDF(folder, filename):
         # any provisions payed
         if re.findall(r'ProvisionEUR([\d,]+)', text):
             provision = extract_float(re.findall(r'ProvisionEUR([\d,]+)', text)[0])
-    
+
         if re.findall(r'CourtageEUR([\d,]+)', text):
             courtage = extract_float(re.findall(r'CourtageEUR([\d,]+)', text)[0])
 
@@ -74,38 +76,30 @@ def readPDF(folder, filename):
             # total costs or total return
             total = extract_float(re.findall(r'LastenEUR([\d,.]+)', text)[0])
 
-    # store in mysql database
-    db = DB()
-    db.connect()
 
-    db.cursor.execute("""INSERT INTO transactions
-                        (WKN, date, stock_name, amount, price, provision, total, courtage, exchange_provision, 
-                        dividend_tax, church_tax, soli_tax, users)
-                        VALUES('{}', '{}', '{}', {}, {}, {}, {}, {}, {}, {}, {}, {},'F')""".format(WKN, date, name, 
-                        amount, price, provision, total, courtage, exchange_provision, dividend_tax, church_tax, 
-                        soli_tax))
-    if due_date is not None:
-        rowid = db.cursor.lastrowid
-        db.cursor.execute("UPDATE transactions SET due_date = '{}' WHERE id = {}".format(due_date, rowid))
+    transaction = Transaction(stock_name=name,
+                              date=date,
+                              WKN=wkn,
+                              amount=amount,
+                              price=price,
+                              provision=provision,
+                              total=total,
+                              courtage=courtage,
+                              exchange_provision=exchange_provision,
+                              dividend_tax=dividend_tax,
+                              church_tax=church_tax,
+                              soli_tax=soli_tax)
+    db.session.add(transaction)
+    # if due_date is not None:
+    #     rowid = db.cursor.lastrowid
+    #     db.cursor.execute("UPDATE transactions SET due_date = '{}' WHERE id = {}".format(due_date, rowid))
 
-    db.cnx.commit()
-    db.close()
 
-
-def readAllPDFs(folder='/home/fabian/Documents/Privat/Depot/'):
+def read_all_pdfs(folder):
     files = listdir(folder)
     for file in files:
         if re.findall(r'Direkt_Depot_\d+_Abrechnung', file) or re.findall(r'Direkt_Depot_\d+_Rueckzahlung', file):
             print("Read file {}".format(file))
-            readPDF(folder, file)
+            read_pdf(folder, file)
 
-
-def makeStats(account, saldos, user):
-    saldo_list = sorted([x for t in saldos[user] for x in saldos[user][t]], key = lambda x: x['date'])
-    total_saldo = 0
-    for year in set([t['date'].year for t in saldo_list]):
-        saldo = sum([t['saldo'] for t in saldo_list if t['date'].year == year])
-        total_saldo += saldo
-        print("The saldo for {} is {:.2f} EUR.".format(year,saldo))
-
-    print("Total saldo is {:.2f} EUR".format(total_saldo))
+    db.session.commit()
