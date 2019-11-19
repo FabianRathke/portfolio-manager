@@ -5,7 +5,7 @@ from datetime import datetime
 import PyPDF2
 
 from flaskr import db
-from flaskr.models import User, Transaction
+from flaskr.models import Transaction
 
 
 def read_pdf(folder, filename):
@@ -75,7 +75,6 @@ def read_pdf(folder, filename):
         else:
             # total costs or total return
             total = extract_float(re.findall(r'LastenEUR([\d,.]+)', text)[0])
-
 
     transaction = Transaction(stock_name=name,
                               date=date,

@@ -2,15 +2,20 @@ import os
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
     SECRET_KEY='dev',
-    SQLALCHEMY_DATABASE_URI='sqlite:///../database/depot.db',
+    SQLALCHEMY_DATABASE_URI='sqlite:///{}/../database/depot.db'.format(basedir),
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 )
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
+from flaskr import models
 
 
 # def create_app(test_config=None):
