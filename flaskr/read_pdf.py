@@ -5,7 +5,7 @@ from datetime import datetime
 import PyPDF2
 
 from flaskr import db
-from flaskr.models import Transaction
+from flaskr.models import Transactions
 
 
 def read_pdf(folder, filename):
@@ -29,7 +29,6 @@ def read_pdf(folder, filename):
     provision = courtage = exchange_provision = 0
 
     wkn = re.findall(r'\(WKN\)[\d\w]+ \(([\d\w]{6})\)', text)[0]
-    order_number = re.findall(r'Ordernummer([\d\.]+)', text)[0]
     if type_ == 'warrant_closure':
         amount = -int(extract_float(re.findall(r'([\d,.]+) Stück', text)[0]))
         due_date = re.findall(r'Fälligkeit(\d{2}.\d{2}.\d{4})', text)[0]
@@ -38,7 +37,9 @@ def read_pdf(folder, filename):
         total = 0
         name = re.findall(r'Wertpapierbezeichnung(.+)Nominale', text)[0]
         price = 0
+        order_number = '0'
     else:
+        order_number = re.findall(r'Ordernummer([\d\.]+)', text)[0]
         date = re.findall(r'(\d{2}.\d{2}.\d{4})um (\d{2}:\d{2}:\d{2})', text)
         date = datetime.strptime(date[0][0]+date[0][1], '%d.%m.%Y%H:%M:%S')
         # Optionsschein
@@ -77,19 +78,19 @@ def read_pdf(folder, filename):
             # total costs or total return
             total = extract_float(re.findall(r'LastenEUR([\d,.]+)', text)[0])
 
-    transaction = Transaction(stock_name=name,
-                              order_number=order_number,
-                              date=date,
-                              WKN=wkn,
-                              amount=amount,
-                              price=price,
-                              provision=provision,
-                              total=total,
-                              courtage=courtage,
-                              exchange_provision=exchange_provision,
-                              dividend_tax=dividend_tax,
-                              church_tax=church_tax,
-                              soli_tax=soli_tax)
+    transaction = Transactions(stock_name=name,
+                               order_number=order_number,
+                               date=date,
+                               WKN=wkn,
+                               amount=amount,
+                               price=price,
+                               provision=provision,
+                               total=total,
+                               courtage=courtage,
+                               exchange_provision=exchange_provision,
+                               dividend_tax=dividend_tax,
+                               church_tax=church_tax,
+                               soli_tax=soli_tax)
     db.session.add(transaction)
     # if due_date is not None:
     #     rowid = db.cursor.lastrowid
