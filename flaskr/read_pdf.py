@@ -29,10 +29,11 @@ def read_pdf(folder, filename):
     provision = courtage = exchange_provision = 0
 
     wkn = re.findall(r'\(WKN\)[\d\w]+ \(([\d\w]{6})\)', text)[0]
+    order_number = re.findall(r'Ordernummer([\d\.]+)', text)[0]
     if type_ == 'warrant_closure':
         amount = -int(extract_float(re.findall(r'([\d,.]+) Stück', text)[0]))
         due_date = re.findall(r'Fälligkeit(\d{2}.\d{2}.\d{4})', text)[0]
-        date = datetime.strptime(due_date+'00:00:00', '%d.%m.%Y%H:%M:%S')
+        date = datetime.strptime(due_date + '00:00:00', '%d.%m.%Y%H:%M:%S')
         #total = extract_float(re.findall(r'Endbetrag([\d,.]+)', text)[0])
         total = 0
         name = re.findall(r'Wertpapierbezeichnung(.+)Nominale', text)[0]
@@ -77,6 +78,7 @@ def read_pdf(folder, filename):
             total = extract_float(re.findall(r'LastenEUR([\d,.]+)', text)[0])
 
     transaction = Transaction(stock_name=name,
+                              order_number=order_number,
                               date=date,
                               WKN=wkn,
                               amount=amount,
