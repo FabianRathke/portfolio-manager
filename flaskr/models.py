@@ -4,7 +4,8 @@ from flaskr import db
 class Transactions(db.Model):
     """ Database table that stores transactions """
     id = db.Column(db.Integer, primary_key=True)
-    order_number = db.Column(db.String(13), unique=False)
+    order_number = db.Column(db.String(13))
+    filename = db.Column(db.String(64), nullable=False, unique=True)
     stock_name = db.Column(db.String(255), nullable=False)
     date = db.Column(db.DateTime, nullable=False)
     WKN = db.Column(db.String(6), nullable=False)

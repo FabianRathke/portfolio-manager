@@ -1,6 +1,7 @@
 import re
 from os import listdir
 from datetime import datetime
+import hashlib
 
 import PyPDF2
 
@@ -9,8 +10,16 @@ from flaskr.models import Transactions
 
 
 def read_pdf(folder, filename):
+    m = hashlib.sha256()
+    m.update(str.encode(filename))
     def extract_float(string):
         return float(string.replace('.', '').replace(',', '.'))
+
+    # check if file was already read into the database
+    hashval = m.hexdigest()
+    if Transactions.query.filter_by(filename=hashval).count() > 0:
+        print("Already in database")
+        return
 
     pdf_obj = open(folder + filename, 'rb')
     pdf_reader = PyPDF2.PdfFileReader(pdf_obj)
@@ -80,6 +89,7 @@ def read_pdf(folder, filename):
 
     transaction = Transactions(stock_name=name,
                                order_number=order_number,
+                               filename=hashval,
                                date=date,
                                WKN=wkn,
                                amount=amount,

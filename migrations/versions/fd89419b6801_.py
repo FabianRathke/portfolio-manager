@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e465aa8466e3
+Revision ID: fd89419b6801
 Revises: 
-Create Date: 2019-11-22 17:27:16.107862
+Create Date: 2019-11-24 18:26:03.393943
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e465aa8466e3'
+revision = 'fd89419b6801'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,6 +21,7 @@ def upgrade():
     op.create_table('transactions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('order_number', sa.String(length=13), nullable=True),
+    sa.Column('filename', sa.String(length=64), nullable=False),
     sa.Column('stock_name', sa.String(length=255), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=False),
     sa.Column('WKN', sa.String(length=6), nullable=False),
@@ -35,7 +36,8 @@ def upgrade():
     sa.Column('exchange_provision', sa.Float(), nullable=True),
     sa.Column('due_date', sa.Date(), nullable=True),
     sa.Column('closed', sa.SmallInteger(), nullable=True),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_transactions'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_transactions')),
+    sa.UniqueConstraint('filename', name=op.f('uq_transactions_filename'))
     )
     op.create_table('user_transaction',
     sa.Column('user_id', sa.Integer(), nullable=False),
