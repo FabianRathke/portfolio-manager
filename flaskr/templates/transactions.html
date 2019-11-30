@@ -1,0 +1,23 @@
+{% extends "bootstrap/base.html" %}
+
+{% block content %}
+<h1>Transactions Overview</h1>
+<table class='table'>
+<tr>
+    <th scope='col'>Date</th>
+    <th scope='col'>Stock name</th>
+    <th scope='col'>Amount</th>
+    <th scope='col'>Price</th>
+    <th scope='col'>Total</th>
+</tr>
+{% for transaction in transactions %}
+<tr>
+    <td>{{ transaction.date.strftime('%d.%m.%Y') }}</td>
+    <td>{{ transaction.stock_name }}</td>
+    <td>{{ transaction.amount }}</td>
+    <td style='text-align:right'>{{ '%.2f €' | format(transaction.price) }}</td>
+    <td style='text-align:right'>{{ '%.2f €' | format(transaction.total) }}</td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

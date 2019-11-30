@@ -12,6 +12,7 @@ from flaskr.models import Transactions
 def read_pdf(folder, filename):
     m = hashlib.sha256()
     m.update(str.encode(filename))
+    
     def extract_float(string):
         return float(string.replace('.', '').replace(',', '.'))
 
@@ -42,7 +43,7 @@ def read_pdf(folder, filename):
         amount = -int(extract_float(re.findall(r'([\d,.]+) Stück', text)[0]))
         due_date = re.findall(r'Fälligkeit(\d{2}.\d{2}.\d{4})', text)[0]
         date = datetime.strptime(due_date + '00:00:00', '%d.%m.%Y%H:%M:%S')
-        #total = extract_float(re.findall(r'Endbetrag([\d,.]+)', text)[0])
+        
         total = 0
         name = re.findall(r'Wertpapierbezeichnung(.+)Nominale', text)[0]
         price = 0

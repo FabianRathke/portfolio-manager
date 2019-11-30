@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_bootstrap import Bootstrap
 from sqlalchemy import MetaData
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -24,7 +25,9 @@ naming_convention = {
 db = SQLAlchemy(app, metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate(app, db, render_as_batch=True)
 
-from flaskr import models
+bootstrap = Bootstrap(app)
+
+from flaskr import models, routes
 
 
 # def create_app(test_config=None):
