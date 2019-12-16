@@ -1,7 +1,8 @@
 from flask import render_template
 
-from flaskr import app, db
+from flaskr import app
 from flaskr.models import Transactions
+
 
 @app.route('/')
 @app.route('/transactions')
